@@ -22,17 +22,19 @@ node {
         sh "./mvnw com.github.eirslett:frontend-maven-plugin:yarn"
     }
 
- 
+    stage('backend tests') {
+        try {
+            sh "./mvnw test"
+        } catch(err) {
+            throw err
+        } finally {
+            junit '**/target/surefire-reports/TEST-*.xml'
+        }
+    }
 
     stage('packaging') {
         sh "./mvnw verify -Pprod -DskipTests"
         archiveArtifacts artifacts: '**/target/*.war', fingerprint: true
     }
-	
-	def dockerImage
-    stage('build docker') {
-        sh "cp -R src/main/docker target/"
-        sh "cp target/*.war target/docker/"
-        dockerImage = docker.build('jhipster-registry', 'target/docker')
-    }
+
 }
